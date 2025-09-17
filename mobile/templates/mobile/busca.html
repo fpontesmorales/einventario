@@ -1,0 +1,34 @@
+﻿{% extends "mobile/base.html" %}
+{% block content %}
+<a class="btn btn-link" href="{% url 'mobile_sala_detail' sala.id %}">← Voltar</a>
+<h6 class="mb-3">Buscar tombamento em {{ sala.nome }}{% if sala.bloco %} ({{ sala.bloco }}){% endif %}</h6>
+
+{% if msg %}<div class="alert alert-warning">{{ msg }}</div>{% endif %}
+
+{% if bem %}
+  {% if bem.tipo == 'LIVRO' %}
+    <div class="alert alert-info">Este item é LIVRO (vistoria no módulo de Livros).</div>
+  {% else %}
+    {% if bem.sala_oficial_id == sala.id %}
+      <div class="card">
+        <div class="card-body">
+          <div><strong>{{ bem.tombamento }}</strong> – {{ bem.descricao }}</div>
+          <a class="btn btn-primary mt-2" href="{% url 'mobile_bem_acao' bem.id %}?sala={{ sala.id }}">Abrir</a>
+        </div>
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="card-body">
+          <div><strong>{{ bem.tombamento }}</strong> – {{ bem.descricao }}</div>
+          <div class="text-muted">Oficial: {{ bem.sala_oficial }}</div>
+          <form method="post" action="{% url 'mobile_puxar_para_sala' sala.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="bem_id" value="{{ bem.id }}">
+            <button class="btn btn-warning mt-2">Registrar aqui (Divergente)</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endblock %}

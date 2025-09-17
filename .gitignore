@@ -1,0 +1,13 @@
+﻿.venv/
+env/
+*.sqlite3
+/media/
+staticfiles/
+.env
+*.log
+/data/
+*.CSV
+*.csv
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

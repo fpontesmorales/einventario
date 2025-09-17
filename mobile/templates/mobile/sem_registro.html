@@ -1,0 +1,14 @@
+﻿{% extends "mobile/base.html" %}
+{% block content %}
+<a class="btn btn-link" href="{% url 'mobile_sala_detail' sala.id %}">← Voltar</a>
+<h6>Adicionar item Sem Registro em {{ sala.nome }}{% if sala.bloco %} ({{ sala.bloco }}){% endif %}</h6>
+
+<form method="post" enctype="multipart/form-data" class="mt-2">
+  {% csrf_token %}
+  <div class="mb-2"><label class="form-label">Possível Tombamento</label><input class="form-control" name="tombamento"></div>
+  <div class="mb-2"><label class="form-label">Descrição*</label><input class="form-control" name="descricao" required></div>
+  <div class="mb-2"><label class="form-label">Número de Série</label><input class="form-control" name="numero_serie"></div>
+  <div class="mb-2"><label class="form-label">Foto*</label><input type="file" class="form-control" name="foto" accept="image/*" capture="environment" required></div>
+  <button class="btn btn-warning w-100">Salvar</button>
+</form>
+{% endblock %}

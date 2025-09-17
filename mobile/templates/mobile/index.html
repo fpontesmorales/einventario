@@ -1,0 +1,33 @@
+﻿{% extends "mobile/base.html" %}
+{% block content %}
+<h5 class="mb-3">
+  Salas – Inventário {% if inventario %}{{ inventario.ano }}{% else %}-{% endif %}
+</h5>
+
+<form class="row g-2 mb-3" method="get" action="{% url 'mobile_home' %}">
+  <div class="col-8"><input class="form-control" name="s" value="{{ termo }}" placeholder="Filtrar salas por nome/bloco"></div>
+  <div class="col-4"><button class="btn btn-outline-secondary w-100">Filtrar</button></div>
+</form>
+
+<form class="d-flex gap-2 mb-3" method="post" action="{% url 'mobile_buscar_global' %}">
+  {% csrf_token %}
+  <input class="form-control" name="q" placeholder="Procurar tombamento (global)">
+  <button class="btn btn-primary">Buscar</button>
+</form>
+
+<div class="list-group">
+  {% for it in salas_info %}
+    <a class="list-group-item list-group-item-action" href="{% url 'mobile_sala_detail' it.sala.id %}">
+      <div class="d-flex justify-content-between">
+        <strong>{{ it.sala.nome }}{% if it.sala.bloco %} ({{ it.sala.bloco }}){% endif %}</strong>
+        <span>{{ it.vistoriados }}/{{ it.total }}</span>
+      </div>
+      <div class="progress mt-2" style="height:6px;">
+        <div class="progress-bar" style="width: {% if it.total %}{% widthratio it.vistoriados it.total 100 %}{% else %}0{% endif %}%"></div>
+      </div>
+    </a>
+  {% empty %}
+    <div class="alert alert-info">Sem salas.</div>
+  {% endfor %}
+</div>
+{% endblock %}

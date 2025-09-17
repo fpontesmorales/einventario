@@ -1,0 +1,9 @@
+﻿{
+  "name": "e-Inventário IFCE",
+  "short_name": "Inventário",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#003366",
+  "icons": []
+}

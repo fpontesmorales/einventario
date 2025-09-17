@@ -1,0 +1,41 @@
+﻿{% extends "mobile/base.html" %}
+{% block content %}
+<a class="btn btn-link" href="{% url 'mobile_sala_detail' sala_atual.id %}">← Voltar</a>
+<h6>{{ bem.tombamento }} – {{ bem.descricao }}</h6>
+
+{% if v_last %}
+  <div class="alert alert-info">
+    <div><strong>Status atual:</strong> {{ v_last.status }}</div>
+    <div><strong>Encontrado em:</strong> {{ v_last.sala_encontrada }}</div>
+    {% if v_last.observacao %}<div><strong>Obs.:</strong> {{ v_last.observacao }}</div>{% endif %}
+    {% if v_last.foto %}<div class="mt-2"><img src="{{ v_last.foto.url }}" style="max-width:100%;border-radius:6px;"></div>{% endif %}
+  </div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" name="sala" value="{{ sala_atual.id }}">
+  <div class="mb-2">
+    <label class="form-label">Status</label>
+    <div class="d-grid gap-2">
+      <button name="status" value="CONFERIDO" class="btn btn-success">Conferido</button>
+      <button name="status" value="DIVERGENTE" class="btn btn-warning">Divergente</button>
+      <button name="status" value="NAO_LOCALIZADO" class="btn btn-outline-danger">Não Localizado</button>
+    </div>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Sala encontrada</label>
+    <select class="form-select" name="sala_encontrada">
+      <option value="{{ sala_atual.id }}">{{ sala_atual }}</option>
+    </select>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Observação</label>
+    <textarea name="observacao" class="form-control" rows="2"></textarea>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Foto</label>
+    <input type="file" name="foto" class="form-control" accept="image/*" capture="environment">
+  </div>
+</form>
+{% endblock %}
