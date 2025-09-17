@@ -3,11 +3,11 @@
 <a class="btn btn-link" href="{% url 'mobile_home' %}">← Salas</a>
 <h5 class="mb-3">{{ sala.nome }}{% if sala.bloco %} ({{ sala.bloco }}){% endif %}</h5>
 
-<form class="d-flex gap-2 mb-3" method="post" action="{% url 'mobile_buscar_tombamento' sala.id %}">
+<form class="d-flex gap-2 mb-3 stack-sm" method="post" action="{% url 'mobile_buscar_tombamento' sala.id %}">
   {% csrf_token %}
   <input class="form-control" name="q" placeholder="Procurar tombamento nesta sala">
   <button class="btn btn-primary">Buscar</button>
-  <a class="btn btn-outline-secondary" href="{% url 'mobile_fechar_sala' sala.id %}">Marcar restantes como Não Localizados</a>
+  <a class="btn btn-outline-secondary" href="{% url 'mobile_fechar_sala' sala.id %}">Restantes → Não Localizados</a>
   <a class="btn btn-warning" href="{% url 'mobile_sem_registro' sala.id %}">Adicionar Sem Registro</a>
 </form>
 
@@ -23,9 +23,7 @@
         </a>
         {% if v %}
           {% if v.status == 'CONFERIDO' %}<span class="chip ms-2">Conferido</span>{% endif %}
-          {% if v.status == 'DIVERGENTE' %}
-            <span class="chip ms-2">Divergente{% if v.sala_encontrada and v.sala_encontrada_id != sala.id %} (encontrado em {{ v.sala_encontrada }}){% endif %}</span>
-          {% endif %}
+          {% if v.status == 'DIVERGENTE' %}<span class="chip ms-2">Divergente{% if v.sala_encontrada and v.sala_encontrada_id != sala.id %} (encontrado em {{ v.sala_encontrada }}){% endif %}</span>{% endif %}
           {% if v.status == 'NAO_LOCALIZADO' %}<span class="chip ms-2">Não Localizado</span>{% endif %}
         {% endif %}
       </div>

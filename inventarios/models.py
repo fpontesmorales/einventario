@@ -1,73 +1,36 @@
 ﻿import os
 from io import BytesIO
+from datetime import datetime
 from django.db import models
-from django.utils import timezone
-from django.conf import settings
-from django.core.files.base import ContentFile
-from PIL import Image, ImageDraw, ImageFont
-from patrimonio.models import Bem, Sala
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    PIL_OK = True
+except Exception:
+    PIL_OK = False
+
+User = get_user_model()
 
 
 class Inventario(models.Model):
-    ano = models.PositiveIntegerField(unique=True)
-    inicio = models.DateField(null=True, blank=True)
-    fim = models.DateField(null=True, blank=True)
-    ativo = models.BooleanField(default=True)
-    def __str__(self): return str(self.ano)
+    ano = models.PositiveIntegerField()
+    ativo = models.BooleanField(default=False)
 
-class Vistoria(models.Model):
-    class Status(models.TextChoices):
-        CONFERIDO = "CONFERIDO", "Conferido"
-        DIVERGENTE = "DIVERGENTE", "Divergente"
-        NAO_LOCALIZADO = "NAO_LOCALIZADO", "Não Localizado"
-        SEM_REGISTRO = "SEM_REGISTRO", "Sem Registro"
-    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
-    bem = models.ForeignKey(Bem, on_delete=models.CASCADE, related_name="vistorias")
-    sala_encontrada = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True)
-    vistoriador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    status = models.CharField(max_length=20, choices=Status.choices)
-    observacao = models.TextField(blank=True, default="")
-    foto = models.ImageField(upload_to="vistorias/", blank=True, null=True)
-    foto_marcada = models.ImageField(upload_to="vistorias/", blank=True, null=True)
-    foto_watermarked = models.BooleanField(default=False)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    criado_em = models.DateTimeField(default=timezone.now)
-    atualizado_em = models.DateTimeField(auto_now=True)
-    def __str__(self): return f"{self.bem.tombamento} @ {self.inventario.ano} – {self.status}"
-    def save(self, *a, **k):
-        super().save(*a, **k)
-        if self.foto and not self.foto_watermarked:
-            self._apply_watermark()
-    def _apply_watermark(self):
-        self.foto.open("rb")
-        image = Image.open(self.foto).convert("RGBA")
-        overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
-        draw = ImageDraw.Draw(overlay)
-        text = (f"Tomb: {self.bem.tombamento} | Sala: {self.sala_encontrada or self.bem.sala_oficial} | "
-                f"Vistoriador: {self.vistoriador.username if self.vistoriador else '-'} | "
-                f"Data: {timezone.localtime(self.criado_em).strftime('%d/%m/%Y %H:%M')}")
-        try: font = ImageFont.truetype("arial.ttf", 22)
-        except Exception: font = ImageFont.load_default()
-        margin = 16; w, h = image.size
-        text_w, text_h = draw.textbbox((0, 0), text, font=font)[2:]
-        box_h = text_h + margin * 2
-        draw.rectangle([(0, h - box_h), (w, h)], fill=(0, 0, 0, 140))
-        draw.text((margin, h - box_h + margin), text, font=font, fill=(255, 255, 255, 255))
-        composed = Image.alpha_composite(image, overlay).convert("RGB")
-        buffer = BytesIO(); composed.save(buffer, format="JPEG", quality=90)
-        file_content = ContentFile(buffer.getvalue())
-        import os
-        fname = os.path.splitext(self.foto.name)[0] + "_wm.jpg"
-        self.foto_marcada.save(os.path.basename(fname), file_content, save=False)
-        self.foto_watermarked = True
-        super().save(update_fields=["foto_marcada", "foto_watermarked"])
+    class Meta:
+        ordering = ["-ativo", "-ano"]
+
+    def __str__(self):
+        return f"{self.ano}"
+
 
 class Importacao(models.Model):
-    criado_em = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     arquivo_nome = models.CharField(max_length=255, blank=True, default="")
+    aplicado = models.BooleanField(default=False)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
     novos = models.PositiveIntegerField(default=0)
     atualizados = models.PositiveIntegerField(default=0)
     movidos = models.PositiveIntegerField(default=0)
@@ -75,8 +38,14 @@ class Importacao(models.Model):
     reativados = models.PositiveIntegerField(default=0)
     sem_mudanca = models.PositiveIntegerField(default=0)
     ausentes = models.PositiveIntegerField(default=0)
-    aplicado = models.BooleanField(default=True)
-    def __str__(self): return f"Importação {self.id} – {self.criado_em:%d/%m/%Y %H:%M}"
+
+    class Meta:
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        lab = "aplicada" if self.aplicado else "simulada"
+        return f"ImportaÃ§Ã£o {lab} {self.criado_em:%d/%m/%Y %H:%M}"
+
 
 class ImportacaoItem(models.Model):
     class Acao(models.TextChoices):
@@ -85,18 +54,178 @@ class ImportacaoItem(models.Model):
         MOVIDO = "MOVIDO", "Movido"
         BAIXADO = "BAIXADO", "Baixado"
         REATIVADO = "REATIVADO", "Reativado"
-        SEM_MUDANCA = "SEM_MUDANCA", "Sem Mudança"
+        SEM_MUDANCA = "SEM_MUDANCA", "Sem MudanÃ§a"
         AUSENTE = "AUSENTE", "Ausente"
-    importacao = models.ForeignKey(Importacao, related_name="itens", on_delete=models.CASCADE)
+
+    importacao = models.ForeignKey(Importacao, on_delete=models.CASCADE, related_name="itens")
     tombamento = models.CharField(max_length=50)
     acao = models.CharField(max_length=20, choices=Acao.choices)
-    mudancas = models.JSONField(default=dict, blank=True)
-    def __str__(self): return f"{self.tombamento} – {self.acao}"
+    diff = models.TextField(blank=True, default="")
+
+    def __str__(self):
+        return f"{self.tombamento} - {self.acao}"
+
+
+class Vistoria(models.Model):
+    class Status(models.TextChoices):
+        CONFERIDO = "CONFERIDO", "Conferido"
+        DIVERGENTE = "DIVERGENTE", "Divergente"
+        NAO_LOCALIZADO = "NAO_LOCALIZADO", "NÃ£o Localizado"
+        SEM_REGISTRO = "SEM_REGISTRO", "Sem Registro"
+
+    ESTADO_CHOICES = [
+        ("OTIMO", "Ã“timo"),
+        ("BOM", "Bom"),
+        ("REGULAR", "Regular"),
+        ("RUIM", "Ruim"),
+        ("INSERVIVEL", "InservÃ­vel"),
+    ]
+
+    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE, related_name="vistorias")
+    bem = models.ForeignKey("patrimonio.Bem", on_delete=models.CASCADE, related_name="vistorias")
+    sala_encontrada = models.ForeignKey("patrimonio.Sala", on_delete=models.SET_NULL, null=True, blank=True)
+    vistoriador = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices)
+    estado_encontrado = models.CharField(max_length=12, choices=ESTADO_CHOICES, blank=True, default="")
+    responsavel_encontrado = models.CharField(max_length=120, blank=True, default="")
+    observacao = models.CharField(max_length=255, blank=True, default="")
+    foto = models.ImageField(upload_to="vistorias/", blank=True, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-criado_em"]
+
+    def __str__(self):
+        return f"{self.bem.tombamento} - {self.status} ({self.inventario.ano})"
+
+    def save(self, *args, **kwargs):
+        # sÃ³ vamos aplicar marca d'Ã¡gua quando o arquivo de foto for novo neste save
+        do_wm = False
+        if PIL_OK and self.foto:
+            if getattr(self, "_new_foto_uploaded", False) or (self._state.adding and self.foto):
+                do_wm = True
+        # limpa o hint para chamadas subsequentes
+        if hasattr(self, "_new_foto_uploaded"):
+            try:
+                delattr(self, "_new_foto_uploaded")
+            except Exception:
+                pass
+
+        super().save(*args, **kwargs)
+
+        if do_wm and self.foto and os.path.exists(getattr(self.foto, "path", "")):
+            try:
+                self._aplicar_marca_dagua()
+            except Exception:
+                pass
+
+    def _aplicar_marca_dagua(self):
+        img = Image.open(self.foto.path).convert("RGBA")
+        w, h = img.size
+
+        # fonte
+        font_size = max(int(w * 0.042), 22)
+        font = None
+        try_paths = [
+            "C:/Windows/Fonts/arial.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "arial.ttf",
+            "DejaVuSans.ttf",
+        ]
+        for p in try_paths:
+            try:
+                if os.path.exists(p):
+                    font = ImageFont.truetype(p, font_size)
+                    break
+                else:
+                    font = ImageFont.truetype(p, font_size)
+                    break
+            except Exception:
+                font = None
+        if not font:
+            font = ImageFont.load_default()
+
+        # textos wrap
+        info_raw = [
+            f"Tombamento: {self.bem.tombamento}",
+            f"Sala: {self.sala_encontrada or '-'}",
+            f"Vistoriador: {self.vistoriador or '-'}",
+            f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        ]
+
+        padding_x = 18
+        padding_y = 10
+        max_w = w - padding_x * 2
+        line_spacing = 6
+
+        def wrap(text):
+            words = str(text).split()
+            lines = []
+            cur = ""
+            for word in words:
+                test = (cur + " " + word).strip()
+                try:
+                    bbox = ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox((0, 0), test, font=font)
+                    tw = bbox[2] - bbox[0]
+                except Exception:
+                    tw = len(test) * font_size * 0.6
+                if tw <= max_w:
+                    cur = test
+                else:
+                    if cur:
+                        lines.append(cur)
+                    cur = word
+            if cur:
+                lines.append(cur)
+            return lines
+
+        lines = []
+        for t in info_raw:
+            lines.extend(wrap(t))
+
+        try:
+            bbox = ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox((0, 0), "Ag", font=font)
+            lh = bbox[3] - bbox[1]
+        except Exception:
+            lh = font_size + 6
+        band_h = max(padding_y * 2 + len(lines) * (lh + line_spacing), max(int(h * 0.18), 90))
+
+        overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+        draw.rectangle([0, h - band_h, w, h], fill=(0, 0, 0, 200))
+
+        y = h - band_h + padding_y
+        for line in lines:
+            try:
+                draw.text(
+                    (padding_x, y),
+                    line,
+                    font=font,
+                    fill=(255, 255, 255, 255),
+                    stroke_width=2,
+                    stroke_fill=(0, 0, 0, 255),
+                )
+                bbox = draw.textbbox((0, 0), line, font=font)
+                lh2 = bbox[3] - bbox[1]
+            except Exception:
+                draw.text((padding_x + 1, y + 1), line, font=font, fill=(0, 0, 0, 255))
+                draw.text((padding_x, y), line, font=font, fill=(255, 255, 255, 255))
+                lh2 = lh
+            y += lh2 + line_spacing
+
+        out = Image.alpha_composite(img, overlay).convert("RGB")
+        buf = BytesIO()
+        out.save(buf, format="JPEG", quality=88, optimize=True)
+        buf.seek(0)
+        nome = os.path.basename(self.foto.name)
+        self.foto.save(nome, ContentFile(buf.read()), save=False)
+        super().save(update_fields=["foto"])
+
 
 class SemRegistro(models.Model):
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE, related_name="sem_registro")
     sala_encontrada = models.ForeignKey("patrimonio.Sala", on_delete=models.SET_NULL, null=True, blank=True)
-    vistoriador = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
+    vistoriador = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     tombamento_informado = models.CharField(max_length=50, blank=True, default="")
     descricao = models.CharField(max_length=255)
     numero_serie = models.CharField(max_length=120, blank=True, default="")
@@ -107,20 +236,4 @@ class SemRegistro(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self):
-        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} – {self.descricao}"
-
-class SemRegistro(models.Model):
-    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE, related_name="sem_registro")
-    sala_encontrada = models.ForeignKey("patrimonio.Sala", on_delete=models.SET_NULL, null=True, blank=True)
-    vistoriador = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
-    tombamento_informado = models.CharField(max_length=50, blank=True, default="")
-    descricao = models.CharField(max_length=255)
-    numero_serie = models.CharField(max_length=120, blank=True, default="")
-    foto = models.ImageField(upload_to="sem_registro/", blank=True, null=True)
-    criado_em = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-criado_em"]
-
-    def __str__(self):
-        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} – {self.descricao}"
+        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} â€“ {self.descricao}"

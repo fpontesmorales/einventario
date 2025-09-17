@@ -14,16 +14,23 @@ from patrimonio.utils_csv import importar_bens_csv, simular_bens_csv
 def user_is_gestor(user):
     return getattr(user, "perfil", "") in ("GESTOR","VISTORIADOR") or user.is_superuser
 
+class VistoriaInline(admin.TabularInline):
+    model = Vistoria
+    extra = 0
+    fields = ("inventario","status","estado_encontrado","responsavel_encontrado","sala_encontrada","vistoriador","criado_em")
+    readonly_fields = ("inventario","status","estado_encontrado","responsavel_encontrado","sala_encontrada","vistoriador","criado_em")
+
 @admin.register(Sala)
 class SalaAdmin(admin.ModelAdmin):
-    search_fields = ("nome", "bloco")
-    list_display = ("nome", "bloco")
+    search_fields = ("nome","bloco")
+    list_display = ("nome","bloco")
 
 @admin.register(Bem)
 class BemAdmin(admin.ModelAdmin):
-    search_fields = ("tombamento", "descricao", "numero_serie", "conta_contabil", "fornecedor")
-    list_display = ("tombamento", "descricao", "sala_oficial", "tipo", "status_original", "ativo", "valor_aquisicao")
-    list_filter = ("tipo", "ativo", "sala_oficial", "estado_conservacao", "campus_carga")
+    inlines = [VistoriaInline]
+    search_fields = ("tombamento","descricao","numero_serie","conta_contabil","fornecedor")
+    list_display = ("tombamento","descricao","sala_oficial","tipo","status_original","ativo","valor_aquisicao")
+    list_filter = ("tipo","ativo","sala_oficial","estado_conservacao","campus_carga")
     readonly_fields = ("info_extra",)
     change_list_template = "admin/patrimonio/bem/change_list.html"
 
@@ -55,8 +62,7 @@ class BemAdmin(admin.ModelAdmin):
                 if acao == "simular":
                     nome_tmp = f"tmp_imports/{uuid.uuid4()}.csv"
                     default_storage.save(nome_tmp, ContentFile(f.read()))
-                    from django.core.files.storage import default_storage as ds
-                    with ds.open(nome_tmp, "rb") as fh:
+                    with default_storage.open(nome_tmp, "rb") as fh:
                         res, exemplos = simular_bens_csv(fh)
                     ctx = dict(self.admin_site.each_context(request), res=res, exemplos=exemplos, temp_path=nome_tmp)
                     return render(request, "inventarios/simulacao_resultado.html", ctx)

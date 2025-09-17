@@ -2,5 +2,6 @@
 {% block object-tools-items %}
 <li><a href="{% url 'admin:patrimonio_bem_importar' %}" class="button">Importar CSV</a></li>
 <li><a href="{% url 'admin:patrimonio_bem_divergencias' %}" class="button">Divergências</a></li>
+<li><a href="{% url 'admin:inventarios_importacao_changelist' %}" class="button">Histórico de Importações</a></li>
 {{ block.super }}
 {% endblock %}

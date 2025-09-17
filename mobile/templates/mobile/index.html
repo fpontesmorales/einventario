@@ -1,7 +1,8 @@
-﻿{% extends "mobile/base.html" %}
+{% extends "mobile/base.html" %}
+{% load l10n %}
 {% block content %}
 <h5 class="mb-3">
-  Salas – Inventário {% if inventario %}{{ inventario.ano }}{% else %}-{% endif %}
+  Salas – Inventário {% if inventario %}{{ inventario.ano|unlocalize }}{% else %}-{% endif %}
 </h5>
 
 <form class="row g-2 mb-3" method="get" action="{% url 'mobile_home' %}">
@@ -9,7 +10,7 @@
   <div class="col-4"><button class="btn btn-outline-secondary w-100">Filtrar</button></div>
 </form>
 
-<form class="d-flex gap-2 mb-3" method="post" action="{% url 'mobile_buscar_global' %}">
+<form class="d-flex gap-2 mb-3 stack-sm" method="post" action="{% url 'mobile_buscar_global' %}">
   {% csrf_token %}
   <input class="form-control" name="q" placeholder="Procurar tombamento (global)">
   <button class="btn btn-primary">Buscar</button>

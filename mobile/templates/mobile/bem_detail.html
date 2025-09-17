@@ -1,41 +1,126 @@
-﻿{% extends "mobile/base.html" %}
+{% extends "mobile/base.html" %}
 {% block content %}
 <a class="btn btn-link" href="{% url 'mobile_sala_detail' sala_atual.id %}">← Voltar</a>
 <h6>{{ bem.tombamento }} – {{ bem.descricao }}</h6>
+
+{% if erro %}<div class="alert alert-danger">{{ erro }}</div>{% endif %}
 
 {% if v_last %}
   <div class="alert alert-info">
     <div><strong>Status atual:</strong> {{ v_last.status }}</div>
     <div><strong>Encontrado em:</strong> {{ v_last.sala_encontrada }}</div>
+    {% if v_last.estado_encontrado %}<div><strong>Estado:</strong> {{ v_last.estado_encontrado }}</div>{% endif %}
+    {% if v_last.responsavel_encontrado %}<div><strong>Responsável:</strong> {{ v_last.responsavel_encontrado }}</div>{% endif %}
     {% if v_last.observacao %}<div><strong>Obs.:</strong> {{ v_last.observacao }}</div>{% endif %}
     {% if v_last.foto %}<div class="mt-2"><img src="{{ v_last.foto.url }}" style="max-width:100%;border-radius:6px;"></div>{% endif %}
   </div>
 {% endif %}
 
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="mt-2">
   {% csrf_token %}
   <input type="hidden" name="sala" value="{{ sala_atual.id }}">
-  <div class="mb-2">
-    <label class="form-label">Status</label>
-    <div class="d-grid gap-2">
-      <button name="status" value="CONFERIDO" class="btn btn-success">Conferido</button>
-      <button name="status" value="DIVERGENTE" class="btn btn-warning">Divergente</button>
-      <button name="status" value="NAO_LOCALIZADO" class="btn btn-outline-danger">Não Localizado</button>
-    </div>
-  </div>
+
   <div class="mb-2">
     <label class="form-label">Sala encontrada</label>
-    <select class="form-select" name="sala_encontrada">
-      <option value="{{ sala_atual.id }}">{{ sala_atual }}</option>
+    <input type="hidden" id="sala_encontrada" name="sala_encontrada" value="{{ sala_sel.id }}">
+    <div class="small text-muted mb-1">Selecionada: <strong id="sel-label">{{ sala_sel_label }}</strong> [{{ sala_sel.id }}]</div>
+
+    <div class="position-relative d-grid gap-2">
+      <input id="sala_busca2" class="form-control" placeholder="Digite para procurar a sala…">
+      <ul id="ac-list2" class="list-group position-absolute w-100" style="z-index:1000; max-height:240px; overflow:auto; display:none;"></ul>
+      <div class="d-flex gap-2">
+        <button type="button" id="btn-usar-atual" class="btn btn-outline-secondary btn-sm">Usar sala atual</button>
+        <button type="button" id="btn-limpar" class="btn btn-outline-danger btn-sm">Limpar busca</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Estado do bem</label>
+    <select class="form-select" name="estado_encontrado">
+      <option value="" {% if not estado_init %}selected{% endif %}>Selecione…</option>
+      <option value="OTIMO" {% if estado_init == 'OTIMO' %}selected{% endif %}>Ótimo</option>
+      <option value="BOM" {% if estado_init == 'BOM' %}selected{% endif %}>Bom</option>
+      <option value="REGULAR" {% if estado_init == 'REGULAR' %}selected{% endif %}>Regular</option>
+      <option value="RUIM" {% if estado_init == 'RUIM' %}selected{% endif %}>Ruim</option>
+      <option value="INSERVIVEL" {% if estado_init == 'INSERVIVEL' %}selected{% endif %}>Inservível</option>
     </select>
   </div>
+
+  <div class="mb-2">
+    <label class="form-label">Servidor da carga atual</label>
+    <input class="form-control" name="responsavel_encontrado" value="{{ resp_init }}" placeholder="Nome do responsável">
+  </div>
+
   <div class="mb-2">
     <label class="form-label">Observação</label>
     <textarea name="observacao" class="form-control" rows="2"></textarea>
   </div>
+
   <div class="mb-2">
-    <label class="form-label">Foto</label>
+    <label class="form-label">Foto (obrigatória para Conferido)</label>
     <input type="file" name="foto" class="form-control" accept="image/*" capture="environment">
   </div>
+
+  <div class="d-grid gap-2 mt-3">
+    <button name="status" value="CONFERIDO" class="btn btn-success">Conferido</button>
+    <button name="status" value="NAO_LOCALIZADO" class="btn btn-outline-danger">Não Localizado</button>
+  </div>
 </form>
+
+{{ salas_data|json_script:"salas-json2" }}
+<script>
+  (function(){
+    const data = JSON.parse(document.getElementById('salas-json2').textContent || '[]')
+      .map(s => ({id: s.id, label: s.nome + (s.bloco ? ' ('+s.bloco+')' : '')}));
+
+    const inp = document.getElementById('sala_busca2');
+    const list = document.getElementById('ac-list2');
+    const hid = document.getElementById('sala_encontrada');
+    const sel = document.getElementById('sel-label');
+    const btnAtual = document.getElementById('btn-usar-atual');
+    const btnLimpar = document.getElementById('btn-limpar');
+
+    function byId(id){ return data.find(x=> String(x.id) === String(id)); }
+    function setSelected(id){
+      hid.value = id;
+      const obj = byId(id);
+      sel.textContent = obj ? obj.label : '';
+    }
+    function render(items){
+      list.innerHTML = '';
+      if(!items.length){ list.style.display='none'; return; }
+      items.slice(0,30).forEach(it=>{
+        const li = document.createElement('li');
+        li.className = 'list-group-item list-group-item-action';
+        li.textContent = it.label + ' ['+it.id+']';
+        li.onclick = ()=>{ setSelected(it.id); list.style.display='none'; inp.value=''; };
+        list.appendChild(li);
+      });
+      list.style.display = 'block';
+    }
+
+    // mostrar lista ao focar
+    inp.addEventListener('focus', ()=>{ render(data.slice(0,30)); });
+    // filtrar conforme digita
+    inp.addEventListener('input', ()=>{
+      const q = inp.value.toLowerCase().trim();
+      if(!q){ render(data.slice(0,30)); return; }
+      render(data.filter(x=> x.label.toLowerCase().includes(q)));
+    });
+    // cliques fora fecham a lista
+    document.addEventListener('click', (e)=>{ if(!list.contains(e.target) && e.target!==inp) list.style.display='none'; });
+
+    // botões
+    btnAtual.addEventListener('click', ()=>{
+      const el = document.querySelector('input[name="sala"][type="hidden"]');
+      const atualId = el ? el.value : '{{ sala_atual.id }}';
+      setSelected(atualId);
+    });
+    btnLimpar.addEventListener('click', ()=>{ inp.value=''; render(data.slice(0,30)); });
+
+    // garantir que o label inicial reflita o hidden (vindo do servidor)
+    setSelected(hid.value);
+  })();
+</script>
 {% endblock %}

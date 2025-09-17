@@ -98,3 +98,14 @@ JAZZMIN_SETTINGS = {
 USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."
 DECIMAL_SEPARATOR = ","
+DEBUG = True
+ALLOWED_HOSTS = ["*", "127.0.0.1", "localhost"]
+
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/vistoria/"
+LOGOUT_REDIRECT_URL = "/admin/login/"

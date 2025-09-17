@@ -1,9 +1,10 @@
-﻿{% extends "mobile/base.html" %}
+{% extends "mobile/base.html" %}
+{% load l10n %}
 {% block content %}
 <a class="btn btn-link" href="{% url 'mobile_home' %}">← Salas</a>
 <h5 class="mb-3">Buscar tombamento (global)</h5>
 
-<form class="d-flex gap-2 mb-3" method="post" action="{% url 'mobile_buscar_global' %}">
+<form class="d-flex gap-2 mb-3 stack-sm" method="post" action="{% url 'mobile_buscar_global' %}">
   {% csrf_token %}
   <input class="form-control" name="q" value="{{ q }}" placeholder="Tombamento">
   <button class="btn btn-primary">Buscar</button>
@@ -19,28 +20,64 @@
   {% else %}
     <div class="card">
       <div class="card-body">
-        <div><strong>{{ bem.tombamento }}</strong> – {{ bem.descricao }}</div>
-        <div class="text-muted">Oficial: {{ bem.sala_oficial }}</div>
+        <div class="mb-2"><strong>{{ bem.tombamento }}</strong> – {{ bem.descricao }}</div>
+        <div class="text-muted mb-2">Oficial: {{ bem.sala_oficial }}</div>
 
-        <div class="mt-3 d-flex gap-2">
+        <div class="d-flex gap-2 mb-3 stack-sm">
           {% if bem.sala_oficial_id %}
-          <a class="btn btn-outline-secondary" href="{% url 'mobile_sala_detail' bem.sala_oficial_id %}">Abrir sala oficial</a>
+            <a class="btn btn-outline-secondary" href="{% url 'mobile_sala_detail' bem.sala_oficial_id %}">Abrir sala oficial</a>
           {% endif %}
+          <a class="btn btn-outline-primary" href="{% url 'mobile_bem_acao' bem.id %}?sala={{ bem.sala_oficial_id|default_if_none:'' }}">Abrir detalhes do bem</a>
         </div>
 
-        <form class="mt-3 d-flex gap-2" method="post" action="{% url 'mobile_buscar_global' %}">
+        <form id="form-puxar" class="mt-2 d-grid gap-2" method="post" action="{% url 'mobile_buscar_global' %}">
           {% csrf_token %}
           <input type="hidden" name="q" value="{{ q }}">
           <input type="hidden" name="acao" value="puxar">
           <input type="hidden" name="bem_id" value="{{ bem.id }}">
-          <select class="form-select" name="sala_id" required>
-            <option value="">Selecionar sala atual…</option>
-            {% for s in salas %}
-              <option value="{{ s.id }}">{{ s.nome }}{% if s.bloco %} ({{ s.bloco }}){% endif %}</option>
-            {% endfor %}
-          </select>
+          <input type="hidden" id="sala_id" name="sala_id">
+
+          <label class="form-label">Sala atual</label>
+          <div class="position-relative">
+            <input id="sala_busca" class="form-control" placeholder="Digite para procurar a sala…">
+            <ul id="ac-list" class="list-group position-absolute w-100" style="z-index:1000; max-height:240px; overflow:auto; display:none;"></ul>
+          </div>
+
           <button class="btn btn-warning">Registrar aqui (Divergente)</button>
         </form>
+
+        {{ salas_data|json_script:"salas-json" }}
+        <script>
+          (function(){
+            const data = JSON.parse(document.getElementById('salas-json').textContent || '[]')
+              .map(s => ({id: s.id, label: s.nome + (s.bloco ? ' ('+s.bloco+')' : '')}));
+            const inp = document.getElementById('sala_busca');
+            const list = document.getElementById('ac-list');
+            const hid = document.getElementById('sala_id');
+            function render(items){
+              list.innerHTML = '';
+              if(!items.length){ list.style.display='none'; return; }
+              items.slice(0,30).forEach(it=>{
+                const li = document.createElement('li');
+                li.className = 'list-group-item list-group-item-action';
+                li.textContent = it.label + ' ['+it.id+']';
+                li.onclick = ()=>{ inp.value = li.textContent; hid.value = it.id; list.style.display='none'; };
+                list.appendChild(li);
+              });
+              list.style.display = 'block';
+            }
+            inp.addEventListener('input', ()=>{
+              const q = inp.value.toLowerCase().trim();
+              hid.value = '';
+              if(!q){ render([]); return; }
+              render(data.filter(x=> x.label.toLowerCase().includes(q)));
+            });
+            document.getElementById('form-puxar').addEventListener('submit', (e)=>{
+              if(!hid.value){ e.preventDefault(); alert('Selecione uma sala da lista.'); }
+            });
+            document.addEventListener('click', (e)=>{ if(!list.contains(e.target) && e.target!==inp) list.style.display='none'; });
+          })();
+        </script>
       </div>
     </div>
   {% endif %}

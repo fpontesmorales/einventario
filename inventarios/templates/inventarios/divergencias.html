@@ -1,4 +1,5 @@
-﻿<!doctype html>
+﻿{% load l10n %}
+<!doctype html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -6,12 +7,13 @@
   <title>Divergências</title>
 </head>
 <body class="p-3">
-  <h3>Divergências – Inventário {{ inventario.ano if inventario }}</h3>
+  <h3>Divergências – Inventário {% if inventario %}{{ inventario.ano|unlocalize }}{% else %}-{% endif %}</h3>
   <table class="table table-sm mt-3">
-    <thead><tr><th>Tombamento</th><th>Descrição</th><th>Sala Oficial</th><th>Encontrado em</th><th>Ação</th></tr></thead>
+    <thead><tr><th>ID</th><th>Tombamento</th><th>Descrição</th><th>Sala Oficial</th><th>Encontrado em</th><th>Ação</th></tr></thead>
     <tbody>
       {% for v in itens %}
       <tr>
+        <td>{{ v.id }}</td>
         <td>{{ v.bem.tombamento }}</td>
         <td>{{ v.bem.descricao }}</td>
         <td>{{ v.bem.sala_oficial }}</td>
@@ -26,7 +28,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="5">Sem divergências pendentes.</td></tr>
+      <tr><td colspan="6">Sem divergências pendentes.</td></tr>
       {% endfor %}
     </tbody>
   </table>
