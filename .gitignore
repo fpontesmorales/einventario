@@ -1,13 +1,25 @@
-﻿.venv/
-env/
+﻿# Python / Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 *.sqlite3
-/media/
-staticfiles/
-.env
+db.sqlite3
 *.log
-/data/
-*.CSV
-*.csv
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+
+# Virtualenv
+.venv/
+venv/
+
+# Django collectstatic
+staticfiles/
+
+# Uploads
+media/
+uploads/
+vistorias/
+sem_registro/
+
+# IDE
+.vscode/
+.idea/
