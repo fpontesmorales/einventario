@@ -1,16 +1,16 @@
-{% extends "admin/base_site.html" %}
+﻿{% extends "admin/base_site.html" %}
 {% block content %}
-<h1>Prévia de Importação</h1>
+<h1>PrÃ©via de ImportaÃ§Ã£o</h1>
 {% if importacao %}
   <p>Arquivo: <strong>{{ importacao.arquivo_nome }}</strong></p>
-  <p>Criada em: {{ importacao.criado_em|date:"d/m/Y H:i" }} &middot; Usuário: {{ importacao.usuario }}</p>
+  <p>Criada em: {{ importacao.criado_em|date:"d/m/Y H:i" }} &middot; UsuÃ¡rio: {{ importacao.usuario }}</p>
   <p>
     Novos: <strong>{{ importacao.novos }}</strong> &middot;
     Atualizados: <strong>{{ importacao.atualizados }}</strong> &middot;
     Movidos: <strong>{{ importacao.movidos }}</strong> &middot;
     Baixados: <strong>{{ importacao.baixados }}</strong> &middot;
     Reativados: <strong>{{ importacao.reativados }}</strong> &middot;
-    Sem mudança: <strong>{{ importacao.sem_mudanca }}</strong> &middot;
+    Sem mudanÃ§a: <strong>{{ importacao.sem_mudanca }}</strong> &middot;
     Ausentes: <strong>{{ importacao.ausentes }}</strong>
   </p>
   <p><a class="button" href="{% url 'inventarios:importacao_previa_csv' %}">Exportar CSV</a></p>
@@ -19,8 +19,8 @@
     <thead>
       <tr>
         <th>Tombamento</th>
-        <th>Ação</th>
-        <th>Diferenças</th>
+        <th>AÃ§Ã£o</th>
+        <th>DiferenÃ§as</th>
       </tr>
     </thead>
     <tbody>
@@ -36,6 +36,6 @@
     </tbody>
   </table>
 {% else %}
-  <div class="alert alert-info">Não há importação pendente (não aplicada) para pré-visualizar.</div>
+  <div class="alert alert-info">NÃ£o hÃ¡ importaÃ§Ã£o pendente (nÃ£o aplicada) para prÃ©-visualizar.</div>
 {% endif %}
 {% endblock %}

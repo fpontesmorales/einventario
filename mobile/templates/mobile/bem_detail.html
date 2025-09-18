@@ -1,10 +1,10 @@
-{% extends "mobile/base.html" %}
+﻿{% extends "mobile/base.html" %}
 {% block content %}
 <h5 class="mb-3">Bem {{ bem.tombamento }}</h5>
 
 <div class="card">
   <div class="card-body">
-    <p class="mb-1"><strong>DescriÃ§Ã£o:</strong> {{ bem.descricao }}</p>
+    <p class="mb-1"><strong>DescriÃƒÂ§ÃƒÂ£o:</strong> {{ bem.descricao }}</p>
     {% if sala_padrao %}<p class="mb-1"><strong>Sala oficial:</strong> {{ sala_padrao.nome }}</p>{% endif %}
   </div>
 </div>
@@ -28,20 +28,20 @@
         <option value="{{ code }}" {% if estado_ini == code %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
       {% if not estado_ini %}
-        <option value="" selected>â€” Selecionar â€”</option>
+        <option value="" selected>Ã¢â‚¬â€ Selecionar Ã¢â‚¬â€</option>
       {% endif %}
     </select>
-    {% if estado_padrao %}<small class="text-muted">PadrÃ£o do cadastro: {{ estado_padrao }}</small>{% endif %}
+    {% if estado_padrao %}<small class="text-muted">PadrÃƒÂ£o do cadastro: {{ estado_padrao }}</small>{% endif %}
   </div>
 
   <div class="mb-3">
-    <label class="form-label">Carga atual (responsÃ¡vel encontrado)</label>
+    <label class="form-label">Carga atual (responsÃƒÂ¡vel encontrado)</label>
     <input type="text" name="responsavel_encontrado" class="form-control" value="{{ resp_ini }}">
-    {% if resp_padrao %}<small class="text-muted">PadrÃ£o do cadastro: {{ resp_padrao }}</small>{% endif %}
+    {% if resp_padrao %}<small class="text-muted">PadrÃƒÂ£o do cadastro: {{ resp_padrao }}</small>{% endif %}
   </div>
 
   <div class="mb-3">
-    <label class="form-label">ObservaÃ§Ã£o</label>
+    <label class="form-label">ObservaÃƒÂ§ÃƒÂ£o</label>
     <input type="text" name="observacao" class="form-control" value="{{ vistoria.observacao|default:'' }}">
   </div>
 
@@ -55,7 +55,7 @@
 
     <div class="d-flex" style="gap:8px;">
     <button name="acao" value="conferido" class="btn btn-success w-100">Conferido</button>
-    <button name="acao" value="nao_localizado" class="btn btn-outline-danger w-100">Não localizado</button>
+    <button name="acao" value="nao_localizado" class="btn btn-outline-danger w-100">NÃ£o localizado</button>
     <button name="acao" value="salvar" class="btn btn-outline-secondary w-100">Salvar</button>
   </div>
 </form>

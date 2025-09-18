@@ -1,4 +1,4 @@
-﻿from django.contrib.auth.decorators import login_required, user_passes_test
+﻿ï»¿from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse
@@ -27,7 +27,7 @@ def _estado_code_from_text(txt: str) -> str:
     t = (txt or "").strip().lower()
     if not t:
         return ""
-    if t.startswith(("ót", "ot")): return "OTIMO"
+    if t.startswith(("Ã³t", "ot")): return "OTIMO"
     if t.startswith("bo"):         return "BOM"
     if t.startswith("reg"):        return "REGULAR"
     if t.startswith("ru"):         return "RUIM"
@@ -56,7 +56,7 @@ def _resp_from_bem(bem) -> str:
     return ""
 
 
-# ---------- relatório de divergências ----------
+# ---------- relatÃ³rio de divergÃªncias ----------
 def _filtrar_divergencias(inv, params):
     qs = Vistoria.objects.none()
     if not inv:
@@ -174,7 +174,7 @@ def relatorio_divergencias_csv(request):
     return resp
 
 
-# ---------- prévia de importação ----------
+# ---------- prÃ©via de importaÃ§Ã£o ----------
 def _get_importacao_para_previa(request):
     escopo = (request.GET.get("escopo") or "pendente").strip().lower()
     imp = None
@@ -210,7 +210,7 @@ def importacao_previa_csv(request):
                 (it.diff or "").replace("\r"," ").replace("\n"," "),
                 str(imp.id),
                 imp.criado_em.strftime("%d/%m/%Y %H:%M"),
-                "Sim" if imp.aplicado else "Não",
+                "Sim" if imp.aplicado else "NÃ£o",
             ])
     out = "\r\n".join(";".join((str(c) if c is not None else "")) for c in rows)
     resp = HttpResponse(out, content_type="text/csv; charset=utf-8")

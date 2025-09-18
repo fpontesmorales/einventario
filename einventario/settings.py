@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 import os
 from dotenv import load_dotenv
 
@@ -85,12 +85,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
 JAZZMIN_SETTINGS = {
-    "site_title": "e-InventÃ¡rio IFCE",
-    "site_header": "e-InventÃ¡rio IFCE",
+    "site_title": "e-InventÃƒÂ¡rio IFCE",
+    "site_header": "e-InventÃƒÂ¡rio IFCE",
     "welcome_sign": "IFCE Campus Caucaia",
 }
 
-# FormataÃ§Ã£o numÃ©rica (pt-BR)
+# FormataÃƒÂ§ÃƒÂ£o numÃƒÂ©rica (pt-BR)
 USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."
 DECIMAL_SEPARATOR = ","
@@ -105,11 +105,11 @@ MEDIA_URL = "/media/"
 LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/vistoria/"
 LOGOUT_REDIRECT_URL = "/admin/login/"
-# formato numÃ©rico
+# formato numÃƒÂ©rico
 USE_THOUSAND_SEPARATOR = False
 NUMBER_GROUPING = 0
 
-# --- Jazzmin: link 'DivergÃªncias' no menu ---
+# --- Jazzmin: link 'DivergÃƒÂªncias' no menu ---
 try:
     JAZZMIN_SETTINGS
 except NameError:
@@ -118,7 +118,7 @@ except NameError:
 JAZZMIN_SETTINGS.setdefault("topmenu_links", [])
 if not any(isinstance(x, dict) and x.get("url") == "inventarios:relatorio_divergencias" for x in JAZZMIN_SETTINGS["topmenu_links"]):
     JAZZMIN_SETTINGS["topmenu_links"].append({
-        "name": "DivergÃªncias",
+        "name": "DivergÃƒÂªncias",
         "url": "inventarios:relatorio_divergencias",
         "permissions": ["inventarios.view_vistoria"],
     })
@@ -127,7 +127,7 @@ JAZZMIN_SETTINGS.setdefault("custom_links", {})
 JAZZMIN_SETTINGS["custom_links"].setdefault("inventarios", [])
 if not any(isinstance(x, dict) and x.get("url") == "inventarios:relatorio_divergencias" for x in JAZZMIN_SETTINGS["custom_links"]["inventarios"]):
     JAZZMIN_SETTINGS["custom_links"]["inventarios"].append({
-        "name": "RelatÃ³rio de DivergÃªncias",
+        "name": "RelatÃƒÂ³rio de DivergÃƒÂªncias",
         "url": "inventarios:relatorio_divergencias",
         "permissions": ["inventarios.view_vistoria"],
     })
@@ -163,7 +163,7 @@ try:
             TEMPLATES[0]['DIRS'] = [P] + list(D)
 except Exception:
     pass
-# --- Jazzmin: link "Prévia de Importação" ---
+# --- Jazzmin: link "PrÃ©via de ImportaÃ§Ã£o" ---
 try:
     JAZZMIN_SETTINGS
 except NameError:
@@ -172,7 +172,7 @@ except NameError:
 JAZZMIN_SETTINGS.setdefault("topmenu_links", [])
 if not any(isinstance(x, dict) and x.get("url") == "inventarios:importacao_previa" for x in JAZZMIN_SETTINGS["topmenu_links"]):
     JAZZMIN_SETTINGS["topmenu_links"].append({
-        "name": "Prévia de Importação",
+        "name": "PrÃ©via de ImportaÃ§Ã£o",
         "url": "inventarios:importacao_previa",
         "permissions": ["inventarios.view_importacao"],
     })

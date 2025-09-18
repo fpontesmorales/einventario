@@ -1,4 +1,4 @@
-import os
+﻿import os
 from io import BytesIO
 from datetime import datetime
 from django.db import models
@@ -44,7 +44,7 @@ class Importacao(models.Model):
 
     def __str__(self):
         lab = "aplicada" if self.aplicado else "simulada"
-        return f"Importação {lab} {self.criado_em:%d/%m/%Y %H:%M}"
+        return f"ImportaÃ§Ã£o {lab} {self.criado_em:%d/%m/%Y %H:%M}"
 
 
 class ImportacaoItem(models.Model):
@@ -54,7 +54,7 @@ class ImportacaoItem(models.Model):
         MOVIDO = "MOVIDO", "Movido"
         BAIXADO = "BAIXADO", "Baixado"
         REATIVADO = "REATIVADO", "Reativado"
-        SEM_MUDANCA = "SEM_MUDANCA", "Sem Mudança"
+        SEM_MUDANCA = "SEM_MUDANCA", "Sem MudanÃ§a"
         AUSENTE = "AUSENTE", "Ausente"
 
     importacao = models.ForeignKey(Importacao, on_delete=models.CASCADE, related_name="itens")
@@ -70,15 +70,15 @@ class Vistoria(models.Model):
     class Status(models.TextChoices):
         CONFERIDO = "CONFERIDO", "Conferido"
         DIVERGENTE = "DIVERGENTE", "Divergente"
-        NAO_LOCALIZADO = "NAO_LOCALIZADO", "Não Localizado"
+        NAO_LOCALIZADO = "NAO_LOCALIZADO", "NÃ£o Localizado"
         SEM_REGISTRO = "SEM_REGISTRO", "Sem Registro"
 
     ESTADO_CHOICES = [
-        ("OTIMO", "Ótimo"),
+        ("OTIMO", "Ã“timo"),
         ("BOM", "Bom"),
         ("REGULAR", "Regular"),
         ("RUIM", "Ruim"),
-        ("INSERVIVEL", "Inservível"),
+        ("INSERVIVEL", "InservÃ­vel"),
     ]
 
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE, related_name="vistorias")
@@ -260,4 +260,4 @@ class SemRegistro(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self):
-        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} – {self.descricao}"
+        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} â€“ {self.descricao}"

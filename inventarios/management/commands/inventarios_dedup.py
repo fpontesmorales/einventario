@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+Ôªøfrom django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Max, Count
 from inventarios.models import Vistoria
@@ -21,7 +21,7 @@ class Command(BaseCommand):
             for g in dups:
                 bem_id = g["bem_id"]
                 inv_id = g["inventario_id"]
-                keep_id = g["max_id"]  # mantÈm a mais recente (id maior)
+                keep_id = g["max_id"]  # mant√©m a mais recente (id maior)
                 extras = (
                     Vistoria.objects
                     .filter(bem_id=bem_id, inventario_id=inv_id)
@@ -29,7 +29,7 @@ class Command(BaseCommand):
                 )
                 count = extras.count()
                 if count:
-                    # TODO: migrar relacionamentos se necess·rio, antes de deletar
+                    # TODO: migrar relacionamentos se necess√°rio, antes de deletar
                     extras.delete()
                     removed += count
 

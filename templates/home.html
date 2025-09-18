@@ -1,16 +1,16 @@
-{% extends "mobile/base.html" %}
+﻿{% extends "mobile/base.html" %}
 {% block content %}
 <div class="d-grid gap-3">
-  <h4 class="mb-3">e-Inventário IFCE</h4>
+  <h4 class="mb-3">e-InventÃ¡rio IFCE</h4>
 
   <a class="btn btn-primary btn-lg" href="/vistoria/">Vistoria (modo mobile)</a>
-  <a class="btn btn-outline-secondary" href="/inventarios/relatorios/divergencias/">Relatório de Divergências</a>
-  <a class="btn btn-outline-dark" href="/admin/">Administração</a>
+  <a class="btn btn-outline-secondary" href="/inventarios/relatorios/divergencias/">RelatÃ³rio de DivergÃªncias</a>
+  <a class="btn btn-outline-dark" href="/admin/">AdministraÃ§Ã£o</a>
 
   {% if user.is_authenticated %}
     <p class="text-muted mt-2">Logado como: <strong>{{ user.get_username }}</strong></p>
   {% else %}
-    <p class="text-muted mt-2">Você não está autenticado. Use a área de <a href="/admin/login/">login do admin</a>.</p>
+    <p class="text-muted mt-2">VocÃª nÃ£o estÃ¡ autenticado. Use a Ã¡rea de <a href="/admin/login/">login do admin</a>.</p>
   {% endif %}
 </div>
 {% endblock %}

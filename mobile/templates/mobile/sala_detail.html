@@ -1,6 +1,6 @@
-{% extends "mobile/base.html" %}
+﻿{% extends "mobile/base.html" %}
 {% block content %}
-<a href="{% url "mobile_salas" %}">← Salas</a>
+<a href="{% url "mobile_salas" %}">â† Salas</a>
 <h4 class="mt-2">{{ sala.nome }}{% if sala.bloco %} ({{ sala.bloco }}){% endif %}</h4>
 
 <form class="d-flex mt-3 mb-2" method="get" action="">
@@ -9,7 +9,7 @@
 </form>
 
 <div class="d-flex mb-3" style="gap:10px; flex-wrap:wrap;">
-  <a class="btn btn-outline-secondary" href="?restantes=nao_localizados">Restantes → Não Localizados</a>
+  <a class="btn btn-outline-secondary" href="?restantes=nao_localizados">Restantes â†’ NÃ£o Localizados</a>
   <a class="btn btn-warning" href="{% url 'mobile_sem_registro' sala_id=sala.id %}">Adicionar item sem registro</a>
 </div>
 
@@ -19,9 +19,9 @@
   <div class="list-group-item d-flex justify-content-between align-items-center">
     <div>
       <a href="{% url 'mobile_bem_detail' bem_id=b.id %}?sala={{ sala.id }}"><strong>{{ b.tombamento }}</strong></a>
-      — {{ b.descricao }}
+      â€” {{ b.descricao }}
     </div>
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'mobile_bem_detail' bem_id=b.id %}?sala={{ sala.id }}">Ação</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'mobile_bem_detail' bem_id=b.id %}?sala={{ sala.id }}">AÃ§Ã£o</a>
   </div>
   {% empty %}
   <div class="text-muted">Nenhum bem encontrado.</div>

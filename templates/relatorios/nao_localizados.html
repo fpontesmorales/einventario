@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+ï»¿{% extends "base.html" %}
 {% block content %}
-<h1>Não Localizados</h1>
+<h1>NÃ£o Localizados</h1>
 
 <form method="get" class="mb-4" style="display:flex;gap:8px;flex-wrap:wrap">
   <select name="inventario">
-    <option value="">Inventário (todos)</option>
+    <option value="">InventÃ¡rio (todos)</option>
     {% for i in inventarios %}
       <option value="{{ i.id }}" {% if request.GET.inventario == i.id|stringformat:"s" %}selected{% endif %}>{{ i.ano }}</option>
     {% endfor %}
@@ -34,10 +34,10 @@
   <thead>
     <tr>
       <th>Tombamento</th>
-      <th>Descrição</th>
+      <th>DescriÃ§Ã£o</th>
       <th>Sala (cadastro)</th>
       <th>Sala (prevista/achada)</th>
-      <th>Última vistoria</th>
+      <th>Ãšltima vistoria</th>
       <th>Vistoriador</th>
     </tr>
   </thead>

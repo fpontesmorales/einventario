@@ -1,4 +1,4 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 from django.utils.html import format_html
 from .models import Inventario, Importacao, ImportacaoItem, Vistoria, SemRegistro
 
@@ -47,7 +47,7 @@ class VistoriaAdmin(admin.ModelAdmin):
 
     def bem_desc(self, obj):
         return getattr(obj.bem, "descricao", "")
-    bem_desc.short_description = "Descrição"
+    bem_desc.short_description = "DescriÃ§Ã£o"
     bem_desc.admin_order_field = "bem__descricao"
 
 @admin.register(SemRegistro)

@@ -1,4 +1,4 @@
-﻿from django.contrib import admin, messages
+﻿ï»¿from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden
@@ -54,7 +54,7 @@ class BemAdmin(admin.ModelAdmin):
                     res = importar_bens_csv(fh, usuario=request.user, arquivo_nome=temp_path.split("/")[-1])
                 try: default_storage.delete(temp_path)
                 except Exception: pass
-                messages.success(request, f"Importação aplicada. Novos: {res['novos']} | Atualizados: {res['atualizados']} | Movidos: {res['movidos']} | Baixados: {res['baixados']} | Reativados: {res['reativados']} | Sem mudança: {res['sem_mudanca']} | Ausentes: {res['ausentes']}")
+                messages.success(request, f"ImportaÃ§Ã£o aplicada. Novos: {res['novos']} | Atualizados: {res['atualizados']} | Movidos: {res['movidos']} | Baixados: {res['baixados']} | Reativados: {res['reativados']} | Sem mudanÃ§a: {res['sem_mudanca']} | Ausentes: {res['ausentes']}")
                 return redirect("admin:patrimonio_bem_changelist")
             form = CSVUploadForm(request.POST, request.FILES)
             if form.is_valid():
@@ -68,7 +68,7 @@ class BemAdmin(admin.ModelAdmin):
                     return render(request, "inventarios/simulacao_resultado.html", ctx)
                 else:
                     res = importar_bens_csv(f, usuario=request.user, arquivo_nome=getattr(f, "name", ""))
-                    messages.success(request, f"Importação aplicada. Novos: {res['novos']} | Atualizados: {res['atualizados']} | Movidos: {res['movidos']} | Baixados: {res['baixados']} | Reativados: {res['reativados']} | Sem mudança: {res['sem_mudanca']} | Ausentes: {res['ausentes']}")
+                    messages.success(request, f"ImportaÃ§Ã£o aplicada. Novos: {res['novos']} | Atualizados: {res['atualizados']} | Movidos: {res['movidos']} | Baixados: {res['baixados']} | Reativados: {res['reativados']} | Sem mudanÃ§a: {res['sem_mudanca']} | Ausentes: {res['ausentes']}")
                     return redirect("admin:patrimonio_bem_changelist")
         else:
             form = CSVUploadForm()

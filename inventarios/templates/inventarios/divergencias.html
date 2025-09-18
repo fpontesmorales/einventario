@@ -1,11 +1,11 @@
-{% extends "admin/base_site.html" %}
+﻿{% extends "admin/base_site.html" %}
 {% block content %}
-<h1>Relatório de Divergências {% if inventario %}({{ inventario.ano }}){% endif %}</h1>
+<h1>RelatÃ³rio de DivergÃªncias {% if inventario %}({{ inventario.ano }}){% endif %}</h1>
 
 <form method="get" class="form-inline" style="margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: end;">
   <div>
     <label>Texto</label>
-    <input type="text" name="q" value="{{ params.q }}" class="vTextField" placeholder="tombamento/descrição/responsável">
+    <input type="text" name="q" value="{{ params.q }}" class="vTextField" placeholder="tombamento/descriÃ§Ã£o/responsÃ¡vel">
   </div>
   <div>
     <label>Bloco</label>
@@ -46,7 +46,7 @@
   <thead>
     <tr>
       <th>Tombamento</th>
-      <th>Descrição</th>
+      <th>DescriÃ§Ã£o</th>
       <th>Sala oficial</th>
       <th>Sala encontrada</th>
       <th>Estado (cad.)</th>
@@ -70,7 +70,7 @@
       <td><a href="{% url 'admin:inventarios_vistoria_change' i.vistoria_id %}">{{ i.vistoria_id }}</a></td>
     </tr>
     {% empty %}
-    <tr><td colspan="9">Sem divergências.</td></tr>
+    <tr><td colspan="9">Sem divergÃªncias.</td></tr>
     {% endfor %}
   </tbody>
 </table>
@@ -84,12 +84,12 @@
     {% endif %}
 
     <span class="current">
-      Página {{ page.number }} de {{ page.paginator.num_pages }}
+      PÃ¡gina {{ page.number }} de {{ page.paginator.num_pages }}
     </span>
 
     {% if page.has_next %}
-      <a href="?{% if qs_base %}{{ qs_base }}&{% endif %}p={{ page.next_page_number }}">próximo</a>
-      <a href="?{% if qs_base %}{{ qs_base }}&{% endif %}p={{ page.paginator.num_pages }}">último &raquo;</a>
+      <a href="?{% if qs_base %}{{ qs_base }}&{% endif %}p={{ page.next_page_number }}">prÃ³ximo</a>
+      <a href="?{% if qs_base %}{{ qs_base }}&{% endif %}p={{ page.paginator.num_pages }}">Ãºltimo &raquo;</a>
     {% endif %}
   </span>
 </div>

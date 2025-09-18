@@ -1,4 +1,4 @@
-﻿import os, sys, re
+﻿ï»¿import os, sys, re
 # garante que a pasta do projeto (onde fica manage.py) esteja no sys.path
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))          # .../scripts
 PROJECT_ROOT = os.path.dirname(THIS_DIR)                       # raiz do projeto
@@ -35,4 +35,4 @@ orphans = Sala.objects.filter(bens_oficiais__isnull=True)
 count_orphans = orphans.count()
 orphans.delete()
 
-print("Bens reassociados:", ajustados, "| Salas órfãs removidas:", count_orphans)
+print("Bens reassociados:", ajustados, "| Salas Ã³rfÃ£s removidas:", count_orphans)

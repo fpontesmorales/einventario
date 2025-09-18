@@ -1,4 +1,4 @@
-import os, sys
+﻿import os, sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -34,7 +34,7 @@ with transaction.atomic():
             groups[key] = v
         else:
             keeper = groups[key]
-            # se o atual tem foto e o keeper não, trocamos o keeper
+            # se o atual tem foto e o keeper nÃ£o, trocamos o keeper
             if (not has_foto(keeper)) and has_foto(v):
                 to_delete.append(keeper.id)
                 groups[key] = v
