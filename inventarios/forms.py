@@ -1,3 +1,3 @@
-﻿from django import forms
+from django import forms
 class CSVUploadForm(forms.Form):
     arquivo = forms.FileField(help_text="CSV com delimitador ;")

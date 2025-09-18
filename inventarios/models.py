@@ -1,4 +1,4 @@
-﻿import os
+import os
 from io import BytesIO
 from datetime import datetime
 from django.db import models

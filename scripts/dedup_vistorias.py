@@ -1,4 +1,4 @@
-﻿import os, sys
+import os, sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]

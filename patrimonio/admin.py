@@ -1,4 +1,4 @@
-﻿ï»¿from django.contrib import admin, messages
+ï»¿from django.contrib import admin, messages
 from django.urls import path
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden

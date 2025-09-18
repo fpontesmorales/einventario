@@ -1,4 +1,4 @@
-﻿# --- helpers (mobile) ---
+# --- helpers (mobile) ---
 def _inv_ativo():
     from inventarios.models import Inventario
     return Inventario.objects.filter(ativo=True).order_by("-ano").first()

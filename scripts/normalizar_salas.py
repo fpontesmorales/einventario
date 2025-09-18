@@ -1,4 +1,4 @@
-﻿ï»¿import os, sys, re
+ï»¿import os, sys, re
 # garante que a pasta do projeto (onde fica manage.py) esteja no sys.path
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))          # .../scripts
 PROJECT_ROOT = os.path.dirname(THIS_DIR)                       # raiz do projeto

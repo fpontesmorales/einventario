@@ -1,4 +1,4 @@
-﻿{% extends "mobile/base.html" %}
+{% extends "mobile/base.html" %}
 {% block content %}
 <a class="btn btn-link" href="{% url 'mobile_sala_detail' sala.id %}">← Voltar</a>
 <h6 class="mb-3">Buscar tombamento em {{ sala.nome }}{% if sala.bloco %} ({{ sala.bloco }}){% endif %}</h6>
