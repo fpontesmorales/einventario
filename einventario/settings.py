@@ -163,3 +163,17 @@ try:
             TEMPLATES[0]['DIRS'] = [P] + list(D)
 except Exception:
     pass
+# --- Jazzmin: link "Prévia de Importação" ---
+try:
+    JAZZMIN_SETTINGS
+except NameError:
+    JAZZMIN_SETTINGS = {}
+
+JAZZMIN_SETTINGS.setdefault("topmenu_links", [])
+if not any(isinstance(x, dict) and x.get("url") == "inventarios:importacao_previa" for x in JAZZMIN_SETTINGS["topmenu_links"]):
+    JAZZMIN_SETTINGS["topmenu_links"].append({
+        "name": "Prévia de Importação",
+        "url": "inventarios:importacao_previa",
+        "permissions": ["inventarios.view_importacao"],
+    })
+# --- fim Jazzmin ---

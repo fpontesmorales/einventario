@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Prévia de Importação</h1>
+{% if importacao %}
+  <p>Arquivo: <strong>{{ importacao.arquivo_nome }}</strong></p>
+  <p>Criada em: {{ importacao.criado_em|date:"d/m/Y H:i" }} &middot; Usuário: {{ importacao.usuario }}</p>
+  <p>
+    Novos: <strong>{{ importacao.novos }}</strong> &middot;
+    Atualizados: <strong>{{ importacao.atualizados }}</strong> &middot;
+    Movidos: <strong>{{ importacao.movidos }}</strong> &middot;
+    Baixados: <strong>{{ importacao.baixados }}</strong> &middot;
+    Reativados: <strong>{{ importacao.reativados }}</strong> &middot;
+    Sem mudança: <strong>{{ importacao.sem_mudanca }}</strong> &middot;
+    Ausentes: <strong>{{ importacao.ausentes }}</strong>
+  </p>
+  <p><a class="button" href="{% url 'inventarios:importacao_previa_csv' %}">Exportar CSV</a></p>
+
+  <table class="adminlist table table-striped">
+    <thead>
+      <tr>
+        <th>Tombamento</th>
+        <th>Ação</th>
+        <th>Diferenças</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in itens %}
+      <tr>
+        <td>{{ it.tombamento }}</td>
+        <td>{% if it.get_acao_display %}{{ it.get_acao_display }}{% else %}{{ it.acao }}{% endif %}</td>
+        <td style="white-space:pre-wrap">{{ it.diff }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">Sem itens.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">Não há importação pendente (não aplicada) para pré-visualizar.</div>
+{% endif %}
+{% endblock %}

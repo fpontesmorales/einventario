@@ -94,6 +94,9 @@ class Vistoria(models.Model):
 
     class Meta:
         ordering = ["-criado_em"]
+        constraints = [
+            models.UniqueConstraint(fields=["inventario", "bem"], name="uniq_vistoria_por_bem_no_inventario")
+        ]
 
     def __str__(self):
         return f"{self.bem.tombamento} - {self.status} ({self.inventario.ano})"
@@ -234,13 +237,11 @@ class Vistoria(models.Model):
 
         rel_old = self.foto.name.replace("\\", "/")
         try:
-            # apaga o arquivo antigo para regravar com o MESMO nome (mesmo URL)
             if self.foto.storage.exists(rel_old):
                 self.foto.storage.delete(rel_old)
         except Exception:
             pass
 
-        # salva com o MESMO nome
         self.foto.save(rel_old, ContentFile(buf.read()), save=False)
         super().save(update_fields=["foto"])
 

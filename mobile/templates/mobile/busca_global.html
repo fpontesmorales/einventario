@@ -1,85 +1,29 @@
 {% extends "mobile/base.html" %}
-{% load l10n %}
 {% block content %}
-<a class="btn btn-link" href="{% url 'mobile_home' %}">← Salas</a>
-<h5 class="mb-3">Buscar tombamento (global)</h5>
-
-<form class="d-flex gap-2 mb-3 stack-sm" method="post" action="{% url 'mobile_buscar_global' %}">
-  {% csrf_token %}
-  <input class="form-control" name="q" value="{{ q }}" placeholder="Tombamento">
+<h5 class="mb-3">Buscar bem por tombamento</h5>
+<form method="get" action="{% url 'mobile_home' %}" class="mb-3 d-flex" style="gap:8px;">
+  <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Digite o tombamento">
   <button class="btn btn-primary">Buscar</button>
 </form>
 
 {% if msg %}
-  <div class="alert alert-warning">{{ msg }}</div>
+  <div class="alert alert-info">{{ msg }}</div>
 {% endif %}
 
 {% if bem %}
-  {% if bem.tipo == 'LIVRO' %}
-    <div class="alert alert-info">Este item é LIVRO (vistoria no módulo de Livros).</div>
-  {% else %}
-    <div class="card">
-      <div class="card-body">
-        <div class="mb-2"><strong>{{ bem.tombamento }}</strong> – {{ bem.descricao }}</div>
-        <div class="text-muted mb-2">Oficial: {{ bem.sala_oficial }}</div>
-
-        <div class="d-flex gap-2 mb-3 stack-sm">
-          {% if bem.sala_oficial_id %}
-            <a class="btn btn-outline-secondary" href="{% url 'mobile_sala_detail' bem.sala_oficial_id %}">Abrir sala oficial</a>
-          {% endif %}
-          <a class="btn btn-outline-primary" href="{% url 'mobile_bem_acao' bem.id %}?sala={{ bem.sala_oficial_id|default_if_none:'' }}">Abrir detalhes do bem</a>
-        </div>
-
-        <form id="form-puxar" class="mt-2 d-grid gap-2" method="post" action="{% url 'mobile_buscar_global' %}">
-          {% csrf_token %}
-          <input type="hidden" name="q" value="{{ q }}">
-          <input type="hidden" name="acao" value="puxar">
-          <input type="hidden" name="bem_id" value="{{ bem.id }}">
-          <input type="hidden" id="sala_id" name="sala_id">
-
-          <label class="form-label">Sala atual</label>
-          <div class="position-relative">
-            <input id="sala_busca" class="form-control" placeholder="Digite para procurar a sala…">
-            <ul id="ac-list" class="list-group position-absolute w-100" style="z-index:1000; max-height:240px; overflow:auto; display:none;"></ul>
-          </div>
-
-          <button class="btn btn-warning">Registrar aqui (Divergente)</button>
-        </form>
-
-        {{ salas_data|json_script:"salas-json" }}
-        <script>
-          (function(){
-            const data = JSON.parse(document.getElementById('salas-json').textContent || '[]')
-              .map(s => ({id: s.id, label: s.nome + (s.bloco ? ' ('+s.bloco+')' : '')}));
-            const inp = document.getElementById('sala_busca');
-            const list = document.getElementById('ac-list');
-            const hid = document.getElementById('sala_id');
-            function render(items){
-              list.innerHTML = '';
-              if(!items.length){ list.style.display='none'; return; }
-              items.slice(0,30).forEach(it=>{
-                const li = document.createElement('li');
-                li.className = 'list-group-item list-group-item-action';
-                li.textContent = it.label + ' ['+it.id+']';
-                li.onclick = ()=>{ inp.value = li.textContent; hid.value = it.id; list.style.display='none'; };
-                list.appendChild(li);
-              });
-              list.style.display = 'block';
-            }
-            inp.addEventListener('input', ()=>{
-              const q = inp.value.toLowerCase().trim();
-              hid.value = '';
-              if(!q){ render([]); return; }
-              render(data.filter(x=> x.label.toLowerCase().includes(q)));
-            });
-            document.getElementById('form-puxar').addEventListener('submit', (e)=>{
-              if(!hid.value){ e.preventDefault(); alert('Selecione uma sala da lista.'); }
-            });
-            document.addEventListener('click', (e)=>{ if(!list.contains(e.target) && e.target!==inp) list.style.display='none'; });
-          })();
-        </script>
+  <div class="card mb-3">
+    <div class="card-body">
+      <h6 class="card-title">{{ bem.tombamento }} — {{ bem.descricao }}</h6>
+      <p class="card-text">
+        {% if bem.sala_oficial %}Sala oficial: <strong>{{ bem.sala_oficial.nome }}</strong>{% endif %}
+      </p>
+      <div class="d-flex" style="gap:8px;">
+        <a class="btn btn-outline-primary" href="/vistoria/bens/{{ bem.id }}{% if bem.sala_oficial_id %}?sala={{ bem.sala_oficial_id }}{% endif %}">Detalhes do bem</a>
+        {% if bem.sala_oficial_id %}
+          <a class="btn btn-outline-secondary" href="/vistoria/salas/{{ bem.sala_oficial_id }}/">Ir para sala</a>
+        {% endif %}
       </div>
     </div>
-  {% endif %}
+  </div>
 {% endif %}
 {% endblock %}

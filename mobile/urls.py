@@ -1,7 +1,10 @@
-﻿from django.urls import path
+from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('bens/<int:bem_id>/', views.bem_acao, name='mobile_bem_detail'),
+    path('salas/lista/', views.home, name='mobile_salas'),
+    path('api/salas/', views.api_salas, name='mobile_api_salas'),
     path("", views.home, name="mobile_home"),
     path("buscar/", views.buscar_global, name="mobile_buscar_global"),
     path("salas/<int:sala_id>/", views.sala_detail, name="mobile_sala_detail"),

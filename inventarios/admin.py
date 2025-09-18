@@ -25,17 +25,30 @@ class ImportacaoAdmin(admin.ModelAdmin):
 
 @admin.register(Vistoria)
 class VistoriaAdmin(admin.ModelAdmin):
-    list_display = ("id","inventario","bem","status","sala_encontrada","mini","criado_em")
+    list_display = ("id","bem_tomb","bem_desc","inventario","status","sala_encontrada","mini","criado_em")
     list_filter = ("inventario","status","sala_encontrada","vistoriador")
-    search_fields = ("bem__tombamento","bem__descricao")
+    search_fields = ("bem__tombamento","bem__descricao","responsavel_encontrado","observacao")
     readonly_fields = ("mini",)
     autocomplete_fields = ("bem","sala_encontrada","vistoriador")
+    ordering = ("bem__tombamento","-criado_em")
+    list_per_page = 50
+    date_hierarchy = "criado_em"
 
     def mini(self, obj):
         if obj.foto:
             return format_html('<img src="{}" style="max-width:240px;border-radius:6px;">', obj.foto.url)
         return "-"
     mini.short_description = "Foto"
+
+    def bem_tomb(self, obj):
+        return getattr(obj.bem, "tombamento", "")
+    bem_tomb.short_description = "Tombamento"
+    bem_tomb.admin_order_field = "bem__tombamento"
+
+    def bem_desc(self, obj):
+        return getattr(obj.bem, "descricao", "")
+    bem_desc.short_description = "Descrição"
+    bem_desc.admin_order_field = "bem__descricao"
 
 @admin.register(SemRegistro)
 class SemRegistroAdmin(admin.ModelAdmin):

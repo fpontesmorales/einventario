@@ -1,3 +1,32 @@
+# --- helpers (mobile) ---
+def _inv_ativo():
+    from inventarios.models import Inventario
+    return Inventario.objects.filter(ativo=True).order_by("-ano").first()
+
+def _estado_code_from_text(txt: str) -> str:
+    t = (txt or "").strip().lower()
+    if not t: return ""
+    if t.startswith(("ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³t","ot")): return "OTIMO"
+    if t.startswith("bo"):       return "BOM"
+    if t.startswith("reg"):      return "REGULAR"
+    if t.startswith("ru"):       return "RUIM"
+    if t.startswith(("ins","inserv")): return "INSERVIVEL"
+    return ""
+
+def _estado_from_bem(bem) -> str:
+    for attr in ("estado", "estado_bem", "estado_conservacao"):
+        if hasattr(bem, attr):
+            return _estado_code_from_text(getattr(bem, attr))
+    return ""
+
+def _resp_from_bem(bem) -> str:
+    for attr in ("carga_atual","responsavel","responsavel_atual","servidor_carga","usuario"):
+        if hasattr(bem, attr):
+            v = getattr(bem, attr)
+            if v:
+                return str(v).strip()
+    return ""
+# --- fim helpers ---
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, get_object_or_404, redirect
 from patrimonio.models import Sala, Bem
@@ -41,7 +70,7 @@ def _estado_code_from_text(txt: str) -> str:
     t = (txt or "").strip().lower()
     if not t:
         return ""
-    if t.startswith(("ót", "ot")):
+    if t.startswith(("ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³t", "ot")):
         return "OTIMO"
     if t.startswith("bo"):
         return "BOM"
@@ -115,14 +144,14 @@ def buscar_global(request):
         try:
             bem = Bem.objects.get(tombamento=q)
         except Bem.DoesNotExist:
-            msg = "Tombamento não encontrado."
+            msg = "Tombamento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado."
 
     if request.method == "POST" and request.POST.get("acao") == "puxar" and bem:
         raw = (request.POST.get("sala_id") or "").strip()
         raw = raw.replace(".", "").replace(" ", "")
         sala_dest = get_object_or_404(Sala, id=int(raw))
         if bem.tipo != "LIVRO" and inv:
-            # uma vistoria por bem no inventário vigente: cria se não existe; senão atualiza p/ divergente
+            # uma vistoria por bem no inventÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡rio vigente: cria se nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o existe; senÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o atualiza p/ divergente
             v_last = (
                 Vistoria.objects.filter(inventario=inv, bem=bem)
                 .order_by("-criado_em").first()
@@ -196,7 +225,7 @@ def buscar_tombamento(request, sala_id):
         try:
             bem = Bem.objects.get(tombamento=q)
         except Bem.DoesNotExist:
-            msg = "Tombamento não encontrado. Cadastre como 'Sem Registro'."
+            msg = "Tombamento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado. Cadastre como 'Sem Registro'."
     return render(request, "mobile/busca.html", {"inventario": inv, "sala": sala, "q": q, "bem": bem, "msg": msg})
 
 
@@ -232,113 +261,83 @@ def puxar_para_sala(request, sala_id):
 @login_required
 @user_passes_test(is_visit_user)
 def bem_acao(request, bem_id):
-    inv = _inventario_ativo()
-    bem = get_object_or_404(Bem, id=bem_id, tipo="BEM", ativo=True)
-    sala_atual_id = request.GET.get("sala") or request.POST.get("sala")
-    sala_atual = get_object_or_404(Sala, id=sala_atual_id) if sala_atual_id else bem.sala_oficial
+    from inventarios.models import Vistoria
+    from patrimonio.models import Bem, Sala
 
-    # vistoria vigente (se existir)
-    v_last = None
-    if inv:
-        v_last = (
-            Vistoria.objects.filter(inventario=inv, bem=bem)
-            .select_related("sala_encontrada", "vistoriador")
-            .order_by("-criado_em")
-            .first()
-        )
+    inv = _inv_ativo()
+    bem = get_object_or_404(Bem, id=bem_id)
+    sala_padrao = getattr(bem, "sala_oficial", None)
+    estado_padrao = _estado_from_bem(bem)
+    resp_padrao = _resp_from_bem(bem)
 
-    if request.method == "POST" and inv:
-        status = request.POST.get("status")  # "CONFERIDO" ou "NAO_LOCALIZADO"
-        obs = (request.POST.get("observacao") or "").strip()
+    vistoria = Vistoria.objects.filter(inventario=inv, bem=bem).first()
 
-        sala_raw = (request.POST.get("sala_encontrada") or str(sala_atual.id)).replace(".", "").replace(" ", "")
-        sala_encontrada = get_object_or_404(Sala, id=int(sala_raw))
+    if request.method == "POST":
+        sala_id = request.POST.get("sala_encontrada_id") or request.POST.get("sala_encontrada") or ""
+        sala_id = int(sala_id) if str(sala_id).isdigit() else None
+        sala_obj = Sala.objects.filter(id=sala_id).first() if sala_id else (vistoria.sala_encontrada if vistoria else sala_padrao)
+
+        estado = (request.POST.get("estado_encontrado") or "").strip() or (vistoria.estado_encontrado if vistoria else "")
+        resp   = (request.POST.get("responsavel_encontrado") or "").strip() or (vistoria.responsavel_encontrado if vistoria else "")
+        obs    = (request.POST.get("observacao") or "").strip()
+
+        btn = request.POST.get("acao") or "salvar"
+        if btn == "nao_localizado":
+            status = Vistoria.Status.NAO_LOCALIZADO
+        elif btn == "conferido":
+            if sala_obj is None: sala_obj = sala_padrao
+            if not estado: estado = estado_padrao
+            if not resp: resp = resp_padrao
+            status = Vistoria.Status.CONFERIDO
+        else:
+            divergente = False
+            if sala_obj and getattr(bem, "sala_oficial_id", None) and sala_obj.id != bem.sala_oficial_id:
+                divergente = True
+            if (estado and estado_padrao and estado != estado_padrao):
+                divergente = True
+            if (resp and resp_padrao and resp != resp_padrao):
+                divergente = True
+            status = Vistoria.Status.DIVERGENTE if divergente else Vistoria.Status.CONFERIDO
 
         foto = request.FILES.get("foto")
-        estado = (request.POST.get("estado_encontrado") or "").strip()
-        resp = (request.POST.get("responsavel_encontrado") or "").strip()
-
-        estado_cadastro = _estado_from_bem(bem)
-
-        # Foto obrigatória para CONFERIDO apenas se NÃO há foto na vistoria vigente
-        if status == Vistoria.Status.CONFERIDO:
-            tem_foto_previa = bool(v_last and v_last.foto)
-            if not tem_foto_previa and not foto:
-                salas = Sala.objects.all().order_by("nome")
-                return render(
-                    request, "mobile/bem_detail.html",
-                    {
-                        "inventario": inv, "bem": bem, "sala_atual": sala_atual, "v_last": v_last,
-                        "salas": salas, "sala_sel": sala_encontrada, "sala_sel_label": _sala_label(sala_encontrada),
-                        "estado_init": estado or estado_cadastro, "resp_init": resp or _resp_from_bem(bem),
-                        "salas_data": list(salas.values("id", "nome", "bloco")),
-                        "erro": "A foto é obrigatória para Conferido (não há foto anterior neste inventário).",
-                    },
-                )
-            if not estado:
-                salas = Sala.objects.all().order_by("nome")
-                return render(
-                    request, "mobile/bem_detail.html",
-                    {
-                        "inventario": inv, "bem": bem, "sala_atual": sala_atual, "v_last": v_last,
-                        "salas": salas, "sala_sel": sala_encontrada, "sala_sel_label": _sala_label(sala_encontrada),
-                        "estado_init": estado or estado_cadastro, "resp_init": resp or _resp_from_bem(bem),
-                        "salas_data": list(salas.values("id", "nome", "bloco")),
-                        "erro": "Selecione o estado do bem.",
-                    },
-                )
-
-        # Divergência automática por sala/estado quando Conferido
-        final = status
-        if status == Vistoria.Status.CONFERIDO:
-            if sala_encontrada.id != (bem.sala_oficial_id or 0):
-                final = Vistoria.Status.DIVERGENTE
-            elif estado and estado_cadastro and estado != estado_cadastro:
-                final = Vistoria.Status.DIVERGENTE
-
-        # ==== ATUALIZA A VISTORIA VIGENTE (ou cria se não existir) ====
-        if v_last:
-            v_last.sala_encontrada = sala_encontrada
-            v_last.vistoriador = request.user
-            v_last.status = final
-            v_last.estado_encontrado = estado
-            v_last.responsavel_encontrado = resp
-            v_last.observacao = obs
+        if vistoria:
+            vistoria.sala_encontrada = sala_obj
+            vistoria.estado_encontrado = estado
+            vistoria.responsavel_encontrado = resp
+            vistoria.observacao = obs
+            vistoria.status = status
             if foto:
-                v_last.foto = foto
-                v_last._new_foto_uploaded = True  # dica para o model salvar a marca d'água
-            v_last.save()
+                vistoria.foto = foto
+                setattr(vistoria, "_new_foto_uploaded", True)
+            vistoria.save()
         else:
-            v = Vistoria(
-                inventario=inv, bem=bem, sala_encontrada=sala_encontrada,
-                vistoriador=request.user, status=final,
-                estado_encontrado=estado, responsavel_encontrado=resp, observacao=obs,
+            vistoria = Vistoria(
+                inventario=inv, bem=bem, sala_encontrada=sala_obj,
+                estado_encontrado=estado, responsavel_encontrado=resp,
+                observacao=obs, status=status
             )
             if foto:
-                v.foto = foto
-                v._new_foto_uploaded = True
-            v.save()
+                vistoria.foto = foto
+                setattr(vistoria, "_new_foto_uploaded", True)
+            vistoria.save()
 
-        return redirect("mobile_sala_detail", sala_id=sala_atual.id)
+        destino = request.POST.get("redir") or ""
+        if destino == "sala" and (sala_obj or sala_padrao):
+            return redirect("mobile_sala_detail", sala_id=(sala_obj.id if sala_obj else sala_padrao.id))
+        return redirect("mobile_bem_detail", bem_id=bem.id)
 
-    # GET: defaults (sem vistoria vigente → puxa do Bem)
-    salas = Sala.objects.all().order_by("nome")
-    sala_sel = v_last.sala_encontrada if (v_last and v_last.sala_encontrada) else sala_atual
-    estado_init = v_last.estado_encontrado if v_last else _estado_from_bem(bem)
-    resp_init = v_last.responsavel_encontrado if v_last else _resp_from_bem(bem)
-    salas_data = list(salas.values("id", "nome", "bloco"))
-    sala_sel_label = _sala_label(sala_sel)
+    sala_ini = (vistoria.sala_encontrada if vistoria else sala_padrao)
+    estado_ini = (vistoria.estado_encontrado if vistoria else estado_padrao)
+    resp_ini = (vistoria.responsavel_encontrado if vistoria else resp_padrao)
+    foto_obrigatoria = not (vistoria and vistoria.foto)
 
-    return render(
-        request, "mobile/bem_detail.html",
-        {
-            "inventario": inv, "bem": bem, "sala_atual": sala_atual, "v_last": v_last,
-            "salas": salas, "sala_sel": sala_sel, "sala_sel_label": sala_sel_label,
-            "estado_init": estado_init, "resp_init": resp_init, "salas_data": salas_data,
-        },
-    )
-
-
+    return render(request, "mobile/bem_detail.html", {
+        "inventario": inv, "bem": bem, "vistoria": vistoria,
+        "sala_padrao": sala_padrao, "estado_padrao": estado_padrao, "resp_padrao": resp_padrao,
+        "sala_ini": sala_ini, "estado_ini": estado_ini, "resp_ini": resp_ini,
+        "foto_obrigatoria": foto_obrigatoria,
+        "ESTADO_CHOICES": Vistoria._meta.get_field("estado_encontrado").choices,
+    })
 @login_required
 @user_passes_test(is_visit_user)
 def marcar_restantes_nl(request, sala_id):
@@ -351,7 +350,7 @@ def marcar_restantes_nl(request, sala_id):
         if not v or v.status not in (
             Vistoria.Status.CONFERIDO, Vistoria.Status.DIVERGENTE, Vistoria.Status.NAO_LOCALIZADO
         ):
-            # cria apenas se não existe vigente
+            # cria apenas se nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o existe vigente
             if not v:
                 Vistoria.objects.create(
                     inventario=inv, bem=b, sala_encontrada=sala, vistoriador=request.user,
@@ -376,3 +375,14 @@ def sem_registro(request, sala_id):
         )
         return redirect("mobile_sala_detail", sala_id=sala.id)
     return render(request, "mobile/sem_registro.html", {"inventario": inv, "sala": sala})
+@login_required
+def api_salas(request):
+    from patrimonio.models import Sala
+    q = (request.GET.get("q") or "").strip()
+    qs = Sala.objects.all()
+    if q:
+        from django.db.models import Q
+        qs = qs.filter(Q(nome__icontains=q) | Q(bloco__icontains=q))
+    qs = qs.order_by("nome")[:20]
+    data = [{"id": s.id, "label": f"{s.nome} ({s.bloco})" if s.bloco else s.nome} for s in qs]
+    return JsonResponse({"results": data})
