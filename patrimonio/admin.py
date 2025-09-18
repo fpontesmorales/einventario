@@ -101,3 +101,20 @@ class BemAdmin(admin.ModelAdmin):
         b.save(update_fields=["sala_oficial"])
         messages.success(request, "Sala oficial atualizada.")
         return redirect("admin:patrimonio_bem_divergencias")
+from django.urls import reverse
+from django.contrib import admin
+try:
+    from patrimonio.models import Bem
+    ma = admin.site._registry.get(Bem)
+    if ma and hasattr(ma, 'changelist_view'):
+        _orig = ma.changelist_view
+        def _wrap(request, extra_context=None):
+            extra_context = extra_context or {}
+            try:
+                extra_context["divergencias_url"] = reverse("inventarios:relatorio_divergencias")
+            except Exception:
+                pass
+            return _orig(request, extra_context=extra_context)
+        ma.changelist_view = _wrap
+except Exception:
+    pass

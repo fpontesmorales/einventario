@@ -1,9 +1,9 @@
-﻿from django.urls import path
+from django.urls import path
 from . import views
 
 app_name = "inventarios"
 
 urlpatterns = [
-    path("importar/", views.importar_csv, name="importar_csv"),
-    path("api/v1/vistoria/", views.api_criar_vistoria, name="api_criar_vistoria"),
+    path("relatorios/divergencias/", views.relatorio_divergencias, name="relatorio_divergencias"),
+    path("relatorios/divergencias.csv", views.relatorio_divergencias_csv, name="relatorio_divergencias_csv"),
 ]

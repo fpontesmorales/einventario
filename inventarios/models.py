@@ -1,4 +1,4 @@
-﻿import os
+import os
 from io import BytesIO
 from datetime import datetime
 from django.db import models
@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw, ImageFont, ImageOps
     PIL_OK = True
 except Exception:
     PIL_OK = False
@@ -44,7 +44,7 @@ class Importacao(models.Model):
 
     def __str__(self):
         lab = "aplicada" if self.aplicado else "simulada"
-        return f"ImportaÃ§Ã£o {lab} {self.criado_em:%d/%m/%Y %H:%M}"
+        return f"Importação {lab} {self.criado_em:%d/%m/%Y %H:%M}"
 
 
 class ImportacaoItem(models.Model):
@@ -54,7 +54,7 @@ class ImportacaoItem(models.Model):
         MOVIDO = "MOVIDO", "Movido"
         BAIXADO = "BAIXADO", "Baixado"
         REATIVADO = "REATIVADO", "Reativado"
-        SEM_MUDANCA = "SEM_MUDANCA", "Sem MudanÃ§a"
+        SEM_MUDANCA = "SEM_MUDANCA", "Sem Mudança"
         AUSENTE = "AUSENTE", "Ausente"
 
     importacao = models.ForeignKey(Importacao, on_delete=models.CASCADE, related_name="itens")
@@ -70,15 +70,15 @@ class Vistoria(models.Model):
     class Status(models.TextChoices):
         CONFERIDO = "CONFERIDO", "Conferido"
         DIVERGENTE = "DIVERGENTE", "Divergente"
-        NAO_LOCALIZADO = "NAO_LOCALIZADO", "NÃ£o Localizado"
+        NAO_LOCALIZADO = "NAO_LOCALIZADO", "Não Localizado"
         SEM_REGISTRO = "SEM_REGISTRO", "Sem Registro"
 
     ESTADO_CHOICES = [
-        ("OTIMO", "Ã“timo"),
+        ("OTIMO", "Ótimo"),
         ("BOM", "Bom"),
         ("REGULAR", "Regular"),
         ("RUIM", "Ruim"),
-        ("INSERVIVEL", "InservÃ­vel"),
+        ("INSERVIVEL", "Inservível"),
     ]
 
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE, related_name="vistorias")
@@ -99,12 +99,10 @@ class Vistoria(models.Model):
         return f"{self.bem.tombamento} - {self.status} ({self.inventario.ano})"
 
     def save(self, *args, **kwargs):
-        # sÃ³ vamos aplicar marca d'Ã¡gua quando o arquivo de foto for novo neste save
         do_wm = False
         if PIL_OK and self.foto:
             if getattr(self, "_new_foto_uploaded", False) or (self._state.adding and self.foto):
                 do_wm = True
-        # limpa o hint para chamadas subsequentes
         if hasattr(self, "_new_foto_uploaded"):
             try:
                 delattr(self, "_new_foto_uploaded")
@@ -113,17 +111,32 @@ class Vistoria(models.Model):
 
         super().save(*args, **kwargs)
 
-        if do_wm and self.foto and os.path.exists(getattr(self.foto, "path", "")):
+        if do_wm and self.foto and hasattr(self.foto, "path") and os.path.exists(self.foto.path):
             try:
-                self._aplicar_marca_dagua()
+                self._aplicar_marca_dagua_inplace()
             except Exception:
                 pass
 
-    def _aplicar_marca_dagua(self):
-        img = Image.open(self.foto.path).convert("RGBA")
-        w, h = img.size
+    def _aplicar_marca_dagua_inplace(self):
+        img = Image.open(self.foto.path)
+        try:
+            img = ImageOps.exif_transpose(img)
+        except Exception:
+            pass
+        img = img.convert("RGBA")
 
-        # fonte
+        w, h = img.size
+        max_side = 2000
+        if max(w, h) > max_side:
+            if w >= h:
+                nw = max_side
+                nh = int(h * (max_side / float(w)))
+            else:
+                nh = max_side
+                nw = int(w * (max_side / float(h)))
+            img = img.resize((nw, nh), Image.LANCZOS)
+            w, h = img.size
+
         font_size = max(int(w * 0.042), 22)
         font = None
         try_paths = [
@@ -145,7 +158,6 @@ class Vistoria(models.Model):
         if not font:
             font = ImageFont.load_default()
 
-        # textos wrap
         info_raw = [
             f"Tombamento: {self.bem.tombamento}",
             f"Sala: {self.sala_encontrada or '-'}",
@@ -158,18 +170,20 @@ class Vistoria(models.Model):
         max_w = w - padding_x * 2
         line_spacing = 6
 
+        def text_width(t):
+            try:
+                bbox = ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox((0, 0), t, font=font)
+                return bbox[2] - bbox[0]
+            except Exception:
+                return len(t) * font_size * 0.6
+
         def wrap(text):
             words = str(text).split()
             lines = []
             cur = ""
             for word in words:
                 test = (cur + " " + word).strip()
-                try:
-                    bbox = ImageDraw.Draw(Image.new("RGB", (1, 1))).textbbox((0, 0), test, font=font)
-                    tw = bbox[2] - bbox[0]
-                except Exception:
-                    tw = len(test) * font_size * 0.6
-                if tw <= max_w:
+                if text_width(test) <= max_w:
                     cur = test
                 else:
                     if cur:
@@ -215,10 +229,19 @@ class Vistoria(models.Model):
 
         out = Image.alpha_composite(img, overlay).convert("RGB")
         buf = BytesIO()
-        out.save(buf, format="JPEG", quality=88, optimize=True)
+        out.save(buf, format="JPEG", quality=85, optimize=True)
         buf.seek(0)
-        nome = os.path.basename(self.foto.name)
-        self.foto.save(nome, ContentFile(buf.read()), save=False)
+
+        rel_old = self.foto.name.replace("\\", "/")
+        try:
+            # apaga o arquivo antigo para regravar com o MESMO nome (mesmo URL)
+            if self.foto.storage.exists(rel_old):
+                self.foto.storage.delete(rel_old)
+        except Exception:
+            pass
+
+        # salva com o MESMO nome
+        self.foto.save(rel_old, ContentFile(buf.read()), save=False)
         super().save(update_fields=["foto"])
 
 
@@ -236,4 +259,4 @@ class SemRegistro(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self):
-        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} â€“ {self.descricao}"
+        return f"SemRegistro {self.tombamento_informado or 's/ tombamento'} – {self.descricao}"
