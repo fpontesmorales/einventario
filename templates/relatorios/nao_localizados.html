@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Não Localizados</h1>
+
+<form method="get" class="mb-4" style="display:flex;gap:8px;flex-wrap:wrap">
+  <select name="inventario">
+    <option value="">Inventário (todos)</option>
+    {% for i in inventarios %}
+      <option value="{{ i.id }}" {% if request.GET.inventario == i.id|stringformat:"s" %}selected{% endif %}>{{ i.ano }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="bloco">
+    <option value="">Bloco (todos)</option>
+    {% for b in blocos %}
+      <option value="{{ b.id }}" {% if request.GET.bloco == b.id|stringformat:"s" %}selected{% endif %}>{{ b.nome }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="sala">
+    <option value="">Sala (todas)</option>
+    {% for s in salas %}
+      <option value="{{ s.id }}" {% if request.GET.sala == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>
+    {% endfor %}
+  </select>
+
+  <input type="datetime-local" name="de" value="{{ request.GET.de }}">
+  <input type="datetime-local" name="ate" value="{{ request.GET.ate }}">
+  <button type="submit">Filtrar</button>
+  <a href="{% url 'rel_nao_localizados_csv' %}?{{ request.GET.urlencode }}">Baixar CSV</a>
+</form>
+
+<table border="1" cellpadding="6" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th>Tombamento</th>
+      <th>Descrição</th>
+      <th>Sala (cadastro)</th>
+      <th>Sala (prevista/achada)</th>
+      <th>Última vistoria</th>
+      <th>Vistoriador</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for v in rows %}
+    <tr>
+      <td>{{ v.bem.tombamento }}</td>
+      <td>{{ v.bem.descricao }}</td>
+      <td>{{ v.bem.sala.nome }}</td>
+      <td>{{ v.sala_encontrada_nome|default:v.sala_encontrada }}</td>
+      <td>{{ v.created_at|date:"Y-m-d H:i" }}</td>
+      <td>{% if v.usuario.get_full_name %}{{ v.usuario.get_full_name }}{% else %}{{ v.usuario.username }}{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">Nenhum registro.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
