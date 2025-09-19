@@ -18,7 +18,7 @@ class Bem(models.Model):
         LIVRO = "LIVRO", "Livro"
 
     tombamento = models.CharField(max_length=50, unique=True)
-    descricao = models.CharField(max_length=255)
+    descricao = models.CharField(max_length=1024)
     numero_serie = models.CharField(max_length=120, blank=True, default="")
     sala_oficial = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, related_name="bens_oficiais")
     ativo = models.BooleanField(default=True)
